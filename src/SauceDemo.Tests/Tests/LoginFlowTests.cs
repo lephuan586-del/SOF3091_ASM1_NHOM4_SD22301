@@ -1,6 +1,6 @@
 using NUnit.Framework;
-using OpenQA.Selenium;
 using SauceDemo.Tests.Base;
+using SauceDemo.Tests.Pages;
 
 namespace SauceDemo.Tests.Tests
 {
@@ -10,71 +10,39 @@ namespace SauceDemo.Tests.Tests
         [Test]
         public void Test_DangNhapThanhCong_ChuyenDenTrangInventory()
         {
-            Driver.Navigate().GoToUrl(Settings.BaseUrl);
+            var loginPage = new LoginPage(Driver, Wait);
+            loginPage.Open(Settings.BaseUrl);
 
-            // Locator bang id va data-test theo dung DOM saucedemo
-            var usernameInput = Wait.Until(d => d.FindElement(By.Id("user-name")));
-            var passwordInput = Driver.FindElement(By.Id("password"));
-            var loginButton = Driver.FindElement(By.Id("login-button"));
-
-            usernameInput.SendKeys("standard_user");
-            passwordInput.SendKeys("secret_sauce");
-            loginButton.Click();
-
-            // Xac nhan vao duoc trang san pham
-            Wait.Until(d => d.Url.Contains("/inventory.html"));
-            var titleElement = Wait.Until(d => d.FindElement(By.CssSelector("[data-test='title']")));
+            var inventoryPage = loginPage.Login("standard_user", "secret_sauce");
 
             Assert.Multiple(() =>
             {
-                Assert.That(Driver.Url, Does.Contain("/inventory.html"));
-                Assert.That(titleElement.Displayed, Is.True);
-                Assert.That(titleElement.Text, Is.EqualTo("Products"));
+                Assert.That(inventoryPage.IsLoaded(), Is.True);
+                Assert.That(inventoryPage.GetTitleText(), Is.EqualTo("Products"));
+                Assert.That(inventoryPage.CurrentUrl, Does.Contain("/inventory.html"));
             });
         }
 
         [Test]
         public void Test_DangNhap_ThemSanPhamVaoGio_MoGioHang_XacNhanSanPham()
         {
-            Driver.Navigate().GoToUrl(Settings.BaseUrl);
+            var loginPage = new LoginPage(Driver, Wait);
+            loginPage.Open(Settings.BaseUrl);
 
-            // Dang nhap
-            var usernameInput = Wait.Until(d => d.FindElement(By.Id("user-name")));
-            var passwordInput = Driver.FindElement(By.Id("password"));
-            var loginButton = Driver.FindElement(By.Id("login-button"));
+            var inventoryPage = loginPage.Login("standard_user", "secret_sauce");
+            Assert.That(inventoryPage.IsLoaded(), Is.True);
 
-            usernameInput.SendKeys("standard_user");
-            passwordInput.SendKeys("secret_sauce");
-            loginButton.Click();
+            inventoryPage.AddBackpackToCart();
+            Assert.That(inventoryPage.GetCartBadgeCount(), Is.EqualTo("1"));
 
-            // Cho den trang inventory
-            Wait.Until(d => d.Url.Contains("/inventory.html"));
-
-            // Them 1 san pham vao gio
-            var addToCartButton = Wait.Until(d => d.FindElement(By.CssSelector("[data-test='add-to-cart-sauce-labs-backpack']")));
-            addToCartButton.Click();
-
-            // Xac nhan badge gio hang = 1
-            var cartBadge = Wait.Until(d => d.FindElement(By.CssSelector("[data-test='shopping-cart-badge']")));
-            Assert.That(cartBadge.Text, Is.EqualTo("1"));
-
-            // Mo gio hang
-            var cartLink = Driver.FindElement(By.CssSelector("[data-test='shopping-cart-link']"));
-            cartLink.Click();
-
-            // Xac nhan chuyen sang trang cart va san pham ton tai trong gio hang
-            Wait.Until(d => d.Url.Contains("/cart.html"));
-            var itemName = Wait.Until(d => {
-                var el = d.FindElement(By.CssSelector("[data-test='inventory-item-name']"));
-                return el.Displayed ? el : null;
-            });
+            var cartPage = inventoryPage.OpenCart();
 
             Assert.Multiple(() =>
             {
-                Assert.That(Driver.Url, Does.Contain("/cart.html"));
-                Assert.That(itemName, Is.Not.Null);
-                Assert.That(itemName!.Displayed, Is.True);
-                Assert.That(itemName.Text, Is.EqualTo("Sauce Labs Backpack"));
+                Assert.That(cartPage.IsLoaded(), Is.True);
+                Assert.That(cartPage.IsItemDisplayed(), Is.True);
+                Assert.That(cartPage.GetFirstItemName(), Is.EqualTo("Sauce Labs Backpack"));
+                Assert.That(cartPage.CurrentUrl, Does.Contain("/cart.html"));
             });
         }
     }
