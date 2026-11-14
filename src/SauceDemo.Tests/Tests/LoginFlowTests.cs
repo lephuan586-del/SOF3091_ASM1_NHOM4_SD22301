@@ -64,12 +64,16 @@ namespace SauceDemo.Tests.Tests
 
             // Xac nhan chuyen sang trang cart va san pham ton tai trong gio hang
             Wait.Until(d => d.Url.Contains("/cart.html"));
-            var itemName = Wait.Until(d => d.FindElement(By.CssSelector("[data-test='inventory-item-name']")));
+            var itemName = Wait.Until(d => {
+                var el = d.FindElement(By.CssSelector("[data-test='inventory-item-name']"));
+                return el.Displayed ? el : null;
+            });
 
             Assert.Multiple(() =>
             {
                 Assert.That(Driver.Url, Does.Contain("/cart.html"));
-                Assert.That(itemName.Displayed, Is.True);
+                Assert.That(itemName, Is.Not.Null);
+                Assert.That(itemName!.Displayed, Is.True);
                 Assert.That(itemName.Text, Is.EqualTo("Sauce Labs Backpack"));
             });
         }

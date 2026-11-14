@@ -28,6 +28,7 @@ namespace SauceDemo.Tests.Base
 
             Driver = new ChromeDriver(options);
             Wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(Settings.TimeoutSeconds));
+            Wait.IgnoreExceptionTypes(typeof(NoSuchElementException), typeof(StaleElementReferenceException));
         }
 
         [TearDown]
