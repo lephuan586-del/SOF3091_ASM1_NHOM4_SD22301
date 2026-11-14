@@ -1,0 +1,25 @@
+## Build and test outputs
+bin/
+obj/
+TestResults/
+[Tt]est[Rr]esults/
+*.trx
+*.log
+
+## Visual Studio / IDE
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.idea/
+*.swp
+*.swo
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Playwright / Selenium / Temporary downloads
+drivers/
+*.tmp
