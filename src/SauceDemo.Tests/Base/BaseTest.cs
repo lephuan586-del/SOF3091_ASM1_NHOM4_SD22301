@@ -1,8 +1,10 @@
 using NUnit.Framework;
+using NUnit.Framework.Interfaces;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using SauceDemo.Tests.Config;
+using SauceDemo.Tests.Utils;
 
 namespace SauceDemo.Tests.Base
 {
@@ -15,6 +17,8 @@ namespace SauceDemo.Tests.Base
         [SetUp]
         public virtual void SetUp()
         {
+            TestContext.Progress.WriteLine($"[{DateTime.Now:HH:mm:ss}] START {TestContext.CurrentContext.Test.Name} (thread {Environment.CurrentManagedThreadId})");
+
             Settings = ConfigReader.Settings;
 
             var options = new ChromeOptions();
@@ -36,12 +40,35 @@ namespace SauceDemo.Tests.Base
         {
             try
             {
-                Driver?.Quit();
-                Driver?.Dispose();
+                var outcome = TestContext.CurrentContext.Result.Outcome.Status;
+                var statusLabel = outcome == TestStatus.Passed ? "PASS" : "FAIL";
+                TestContext.Progress.WriteLine($"[{DateTime.Now:HH:mm:ss}] {statusLabel} {TestContext.CurrentContext.Test.Name} (thread {Environment.CurrentManagedThreadId})");
+
+                if (outcome == TestStatus.Failed && Driver != null)
+                {
+                    var screenshotPath = ScreenshotHelper.CaptureScreenshot(Driver, TestContext.CurrentContext.Test.Name);
+                    if (!string.IsNullOrEmpty(screenshotPath) && File.Exists(screenshotPath))
+                    {
+                        TestContext.AddTestAttachment(screenshotPath, "Screenshot chup khi test that bai");
+                        TestContext.Progress.WriteLine($"[SCREENSHOT] Da luu anh man hinh tai: {screenshotPath}");
+                    }
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore cleanup errors
+                TestContext.Progress.WriteLine($"Loi trong TearDown: {ex.Message}");
+            }
+            finally
+            {
+                try
+                {
+                    Driver?.Quit();
+                    Driver?.Dispose();
+                }
+                catch
+                {
+                    // Ignore driver cleanup errors
+                }
             }
         }
     }
