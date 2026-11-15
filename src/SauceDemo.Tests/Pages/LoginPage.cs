@@ -7,7 +7,7 @@ namespace SauceDemo.Tests.Pages
     {
         private readonly By _usernameInput = By.Id("user-name");
         private readonly By _passwordInput = By.Id("password");
-        private readonly By _loginButton = By.CssSelector("[data-test='login-button']");
+        private readonly By _loginButton = By.Id("login-button");
         private readonly By _errorMessage = By.CssSelector("[data-test='error']");
 
         public LoginPage(IWebDriver driver, WebDriverWait wait) : base(driver, wait)
